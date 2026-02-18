@@ -6,8 +6,8 @@
 <title>암호화폐 히트맵 | Herdvibe</title>
 <meta property="og:title" content="암호화폐 히트맵 | Herdvibe">
 <meta property="og:description" content="시가총액 기준 Top 100 크립토 자산 일일 성적표">
-<meta property="og:image" content="https://herdvibe.com/crypto-heatmap/og-image.png">
-<meta property="og:url" content="https://herdvibe.com/crypto-heatmap/">
+<meta property="og:image" content="https://herdvibe.com/258795354/og-image.png">
+<meta property="og:url" content="https://herdvibe.com/258795354">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -429,7 +429,7 @@
 
 <script>
 const DATA_URL = 'data/crypto_heatmap.json';
-const SHARE_URL = 'https://herdvibe.com/crypto-heatmap/';
+const SHARE_URL = 'https://herdvibe.com/258795354';
 const STABLECOINS = ['tether','usd-coin','dai','trueusd','first-digital-usd','ethena-usde','usds','paypal-usd','frax','binance-peg-busd','tether-eurt','gemini-dollar','paxos-standard','celo-dollar'];
 
 const CATEGORIES = {
@@ -628,7 +628,7 @@ function shareKakao() {
   if(typeof Kakao!=='undefined'&&Kakao.isInitialized()) {
     Kakao.Share.sendDefault({
       objectType:'feed',
-      content:{title:'암호화폐 히트맵',description:'시가총액 기준 Top 100 크립토 자산 실시간 성적표',imageUrl:'https://herdvibe.com/crypto-heatmap/og-image.png',link:{mobileWebUrl:SHARE_URL,webUrl:SHARE_URL}},
+      content:{title:'암호화폐 히트맵',description:'시가총액 기준 Top 100 크립토 자산 실시간 성적표',imageUrl:'https://herdvibe.com/258795354/og-image.png',link:{mobileWebUrl:SHARE_URL,webUrl:SHARE_URL}},
       buttons:[{title:'히트맵 보기',link:{mobileWebUrl:SHARE_URL,webUrl:SHARE_URL}}]
     });
   } else window.open(`https://story.kakao.com/share?url=${encodeURIComponent(SHARE_URL)}`,'_blank');
@@ -647,16 +647,23 @@ function copyLink() {
   showToast('✅ 링크가 복사되었습니다');
 }
 function doCopy(text) {
+  // 1차: Clipboard API (top-level에서만 동작)
+  if (navigator.clipboard && window.isSecureContext && !window.frameElement) {
+    navigator.clipboard.writeText(text); return;
+  }
+  // 2차: execCommand
   try {
     const ta = document.createElement('textarea');
     ta.value = text;
-    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;';
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;pointer-events:none;';
     document.body.appendChild(ta);
-    ta.focus();
     ta.select();
+    ta.setSelectionRange(0, ta.value.length);
     document.execCommand('copy');
     document.body.removeChild(ta);
   } catch(e) {
+    // 3차: prompt 폴백
     window.prompt('링크를 복사하세요:', text);
   }
 }
