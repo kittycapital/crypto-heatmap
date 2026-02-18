@@ -637,11 +637,28 @@ function shareTelegram() {
   const t='크립토 시장 히트맵 - 시총 Top 100 실시간 성적표';
   window.open(`https://t.me/share/url?url=${encodeURIComponent(SHARE_URL)}&text=${encodeURIComponent(t)}`,'_blank');
 }
-function shareInstagram() { copyLink(); showToast('📋 링크 복사됨! 인스타그램 스토리에 붙여넣기 하세요'); }
+function shareInstagram() {
+  doCopy(SHARE_URL);
+  window.open('https://www.instagram.com/', '_blank');
+  showToast('📋 링크 복사됨! 인스타그램 스토리에 붙여넣기 하세요');
+}
 function copyLink() {
-  navigator.clipboard.writeText(SHARE_URL).then(()=>showToast('✅ 링크가 복사되었습니다')).catch(()=>{
-    const ta=document.createElement('textarea'); ta.value=SHARE_URL; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('✅ 링크가 복사되었습니다');
-  });
+  doCopy(SHARE_URL);
+  showToast('✅ 링크가 복사되었습니다');
+}
+function doCopy(text) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  } catch(e) {
+    window.prompt('링크를 복사하세요:', text);
+  }
 }
 
 // ===== RESIZE =====
