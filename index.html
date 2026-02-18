@@ -186,7 +186,7 @@
 
   /* ===== TREEMAP ===== */
   .treemap-container { padding: 4px 8px 16px; width: 100%; }
-  .treemap { width: 100%; position: relative; min-height: 600px; }
+  .treemap { width: 100%; position: relative; min-height: 500px; }
 
   .tree-cell {
     position: absolute;
@@ -307,7 +307,7 @@
   /* ===== LOADING ===== */
   .loading-overlay {
     display: flex; align-items: center; justify-content: center;
-    min-height: 500px; flex-direction: column; gap: 16px;
+    min-height: 400px; flex-direction: column; gap: 16px;
   }
   .spinner {
     width: 30px; height: 30px;
@@ -533,7 +533,7 @@ function showToast(msg) { const t=document.getElementById('toast'); t.textConten
 // ===== RENDER =====
 function renderTreemap(data) {
   const ct = document.getElementById('treemap');
-  const cw = ct.clientWidth, ch = Math.max(600, window.innerHeight-300);
+  const cw = ct.clientWidth, ch = 500;
   ct.style.height = ch+'px';
   let f = data.filter(c => !STABLECOINS.includes(c.id));
   if (currentCategory !== 'all') { const ci = CATEGORIES[currentCategory]||[]; f = f.filter(c => ci.includes(c.id)); }
