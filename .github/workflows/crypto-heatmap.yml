@@ -1,0 +1,36 @@
+name: Crypto Heatmap Data Update
+
+on:
+  schedule:
+    # 매 시간 정각 실행 (UTC)
+    - cron: '0 * * * *'
+  workflow_dispatch: # 수동 실행 가능
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch CoinGecko data
+        run: python scripts/fetch_crypto_data.py
+
+      - name: Commit and push data
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/crypto_heatmap.json
+          git diff --staged --quiet || git commit -m "📊 Update crypto heatmap data $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
