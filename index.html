@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Heatmap | Herdvibe</title>
+<meta property="og:title" content="Crypto Heatmap | Herdvibe">
+<meta property="og:description" content="시가총액 기준 Top 100 크립토 자산 일일 성적표">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0a0a0a;
+    --bg-card: #111111;
+    --text-primary: #e8e8e8;
+    --text-secondary: #888888;
+    --text-muted: #555555;
+    --border: #1a1a1a;
+    --gain-5: #00c853;
+    --gain-3: #2e7d32;
+    --gain-1: #1b5e20;
+    --gain-0: #263238;
+    --loss-0: #37474f;
+    --loss-1: #b71c1c;
+    --loss-3: #d32f2f;
+    --loss-5: #ff1744;
+    --accent: #ffd600;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 20px 24px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .header-left h1 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+  }
+  .header-left h1 span { color: var(--accent); }
+
+  .header-left .subtitle {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* PERIOD TOGGLE */
+  .period-toggle {
+    display: flex;
+    background: #161616;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .period-btn {
+    padding: 7px 14px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .period-btn.active {
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+  }
+  .period-btn:hover:not(.active) {
+    background: #222;
+    color: var(--text-primary);
+  }
+
+  /* CATEGORY FILTER */
+  .category-filter {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .cat-btn {
+    padding: 6px 12px;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    background: #161616;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .cat-btn.active {
+    background: #222;
+    color: var(--text-primary);
+    border-color: #444;
+  }
+  .cat-btn:hover:not(.active) { border-color: #333; }
+
+  /* SHARE BUTTONS */
+  .share-group {
+    display: flex;
+    gap: 6px;
+  }
+  .share-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: #161616;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 14px;
+  }
+  .share-btn:hover { background: #222; color: var(--text-primary); border-color: #444; }
+  .share-btn.twitter:hover { color: #1da1f2; border-color: #1da1f2; }
+  .share-btn.kakao:hover { color: #fee500; border-color: #fee500; }
+  .share-btn.telegram:hover { color: #0088cc; border-color: #0088cc; }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    gap: 24px;
+    padding: 12px 24px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .stat-item span { font-weight: 700; }
+  .stat-green { color: var(--gain-5); }
+  .stat-red { color: var(--loss-5); }
+  .stat-yellow { color: var(--accent); }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 24px 8px;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+  .legend-block {
+    width: 24px;
+    height: 12px;
+    border-radius: 2px;
+  }
+  .legend-label { margin: 0 6px 0 2px; }
+
+  /* TREEMAP CONTAINER */
+  .treemap-container {
+    padding: 8px 16px 16px;
+    width: 100%;
+  }
+
+  .treemap {
+    width: 100%;
+    position: relative;
+    min-height: 600px;
+  }
+
+  /* TREEMAP CELLS */
+  .tree-cell {
+    position: absolute;
+    border-radius: 3px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, z-index 0s;
+    border: 1px solid rgba(0,0,0,0.4);
+  }
+  .tree-cell:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px rgba(0,0,0,0.6);
+    z-index: 100;
+  }
+
+  .cell-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cell-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-bottom: 2px;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+  }
+
+  .cell-symbol {
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    line-height: 1.1;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    text-align: center;
+  }
+  .cell-name {
+    font-size: 9px;
+    opacity: 0.7;
+    font-weight: 400;
+    line-height: 1.1;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .cell-change {
+    font-weight: 700;
+    line-height: 1.2;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    text-align: center;
+  }
+
+  /* SIZE CLASSES */
+  .size-xl .cell-symbol { font-size: 20px; }
+  .size-xl .cell-change { font-size: 22px; }
+  .size-xl .cell-name { font-size: 12px; }
+  .size-xl .cell-icon { width: 32px; height: 32px; margin-bottom: 4px; }
+
+  .size-lg .cell-symbol { font-size: 15px; }
+  .size-lg .cell-change { font-size: 16px; }
+  .size-lg .cell-name { font-size: 10px; }
+  .size-lg .cell-icon { width: 24px; height: 24px; }
+
+  .size-md .cell-symbol { font-size: 12px; }
+  .size-md .cell-change { font-size: 13px; }
+  .size-md .cell-name { font-size: 9px; }
+  .size-md .cell-icon { width: 18px; height: 18px; }
+
+  .size-sm .cell-symbol { font-size: 10px; }
+  .size-sm .cell-change { font-size: 10px; }
+  .size-sm .cell-name { display: none; }
+  .size-sm .cell-icon { width: 14px; height: 14px; margin-bottom: 1px; }
+
+  .size-xs .cell-symbol { font-size: 8px; }
+  .size-xs .cell-change { font-size: 8px; }
+  .size-xs .cell-name { display: none; }
+  .size-xs .cell-icon { display: none; }
+
+  /* TOOLTIP */
+  .tooltip {
+    position: fixed;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.15s;
+    min-width: 220px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+  }
+  .tooltip.show { opacity: 1; }
+  .tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #2a2a2a;
+  }
+  .tooltip-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-size: cover;
+  }
+  .tooltip-name { font-weight: 700; font-size: 14px; }
+  .tooltip-symbol { color: var(--text-secondary); font-size: 11px; }
+  .tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+  }
+  .tooltip-label { color: var(--text-secondary); font-size: 11px; }
+  .tooltip-value { font-weight: 600; font-size: 11px; }
+
+  /* WATERMARK */
+  .watermark {
+    position: fixed;
+    bottom: 12px;
+    right: 16px;
+    font-size: 10px;
+    color: var(--text-muted);
+    opacity: 0.4;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  /* LOADING */
+  .loading-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 500px;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .loading-spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 12px; color: var(--text-secondary); }
+
+  /* TIMESTAMP */
+  .timestamp {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .header { padding: 16px 12px 0; }
+    .header-left h1 { font-size: 16px; }
+    .treemap-container { padding: 4px 6px 12px; }
+    .stats-bar { padding: 10px 12px; gap: 12px; font-size: 10px; }
+    .legend { padding: 8px 12px; }
+    .category-filter { gap: 4px; }
+    .cat-btn { padding: 5px 8px; font-size: 9px; }
+    .period-btn { padding: 6px 10px; font-size: 10px; }
+  }
+
+  /* FADE IN */
+  .tree-cell {
+    animation: cellFade 0.3s ease forwards;
+    opacity: 0;
+  }
+  @keyframes cellFade {
+    to { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>CRYPTO <span>HEATMAP</span></h1>
+    <div class="subtitle">시가총액 기준 Top 100 · 스테이블코인 제외 · <span id="dataTimestamp">—</span></div>
+  </div>
+  <div class="header-right">
+    <div class="period-toggle">
+      <button class="period-btn active" data-period="24h">24H</button>
+      <button class="period-btn" data-period="7d">7D</button>
+      <button class="period-btn" data-period="30d">30D</button>
+    </div>
+    <div class="share-group">
+      <button class="share-btn twitter" onclick="shareTwitter()" title="Twitter">𝕏</button>
+      <button class="share-btn kakao" onclick="shareKakao()" title="KakaoTalk">💬</button>
+      <button class="share-btn telegram" onclick="shareTelegram()" title="Telegram">✈</button>
+    </div>
+  </div>
+</div>
+
+<div class="stats-bar" id="statsBar">
+  <div class="stat-item">총 <span id="totalCoins" class="stat-yellow">0</span>개 코인</div>
+  <div class="stat-item">상승 <span id="gainCount" class="stat-green">0</span></div>
+  <div class="stat-item">하락 <span id="lossCount" class="stat-red">0</span></div>
+  <div class="stat-item">평균 변동 <span id="avgChange">0%</span></div>
+  <div class="stat-item">BTC 도미넌스 <span id="btcDom" class="stat-yellow">—</span></div>
+  <div class="timestamp" id="updateTime"></div>
+</div>
+
+<div class="category-filter" id="categoryFilter" style="padding: 6px 24px;">
+  <button class="cat-btn active" data-cat="all">전체</button>
+</div>
+
+<div class="legend">
+  <div class="legend-block" style="background:#b71c1c"></div><span class="legend-label">≤-5%</span>
+  <div class="legend-block" style="background:#c62828"></div><span class="legend-label">-3%</span>
+  <div class="legend-block" style="background:#d32f2f80"></div><span class="legend-label">-1%</span>
+  <div class="legend-block" style="background:#37474f"></div><span class="legend-label">0%</span>
+  <div class="legend-block" style="background:#1b5e2080"></div><span class="legend-label">+1%</span>
+  <div class="legend-block" style="background:#2e7d32"></div><span class="legend-label">+3%</span>
+  <div class="legend-block" style="background:#00c853"></div><span class="legend-label">≥+5%</span>
+</div>
+
+<div class="treemap-container">
+  <div class="treemap" id="treemap">
+    <div class="loading-overlay" id="loading">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Loading market data...</div>
+    </div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+<div class="watermark">HERDVIBE.COM</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const DATA_URL = 'data/crypto_heatmap.json'; // GitHub Actions에서 생성할 JSON 경로
+const STABLECOINS = ['tether','usd-coin','dai','trueusd','first-digital-usd','ethena-usde','usds','paypal-usd','frax','binance-peg-busd','tether-eurt','gemini-dollar','paxos-standard','celo-dollar'];
+
+const CATEGORIES = {
+  'Layer 1': ['bitcoin','ethereum','binance-coin','solana','cardano','avalanche-2','polkadot','tron','sui','near','aptos','cosmos','algorand','hedera-hashgraph','internet-computer','sei-network','injective-protocol','kaspa','ton','fantom','the-open-network','flow','eos','neo','zilliqa','elrond-erd-2','harmony','celo','theta-token','vechain','tezos','mina-protocol'],
+  'Layer 2': ['matic-network','arbitrum','optimism','mantle','starknet','immutable-x','metis-token','loopring','skale','boba-network','polygon-zkevm'],
+  'DeFi': ['uniswap','aave','lido-dao','maker','chainlink','the-graph','jupiter-exchange-solana','raydium','pancakeswap-token','curve-dao-token','compound-governance-token','synthetix-network-token','1inch','sushi','dydx','gmx','ribbon-finance','yearn-finance','convex-finance','rocket-pool','frax-share','thorchain','ondo-finance','ethena','pendle'],
+  'Meme': ['dogecoin','shiba-inu','pepe','dogwifcoin','floki','bonk','brett','book-of-meme','mog-coin','popcat','memecoin','trump-coin'],
+  'AI & Data': ['render-token','fetch-ai','ocean-protocol','singularitynet','bittensor','akash-network','worldcoin','arkham','phala-network','numeraire'],
+  'Gaming & NFT': ['axie-infinity','the-sandbox','decentraland','gala','illuvium','enjincoin','stepn','gods-unchained','star-atlas','ronin'],
+  'Infrastructure': ['filecoin','arweave','helium','theta-fuel','livepeer','storj','ar','akash-network','pyth-network','celestia','wormhole'],
+  'Exchange': ['bnb','crypto-com-chain','okb','leo-token','kucoin-shares','gate-token','mx-token','bitget-token']
+};
+
+let allData = [];
+let currentPeriod = '24h';
+let currentCategory = 'all';
+
+// ============================================================
+// COLOR FUNCTIONS
+// ============================================================
+function getChangeColor(change) {
+  if (change >= 7) return 'rgba(0, 230, 118, 0.95)';
+  if (change >= 5) return 'rgba(0, 200, 83, 0.9)';
+  if (change >= 3) return 'rgba(46, 125, 50, 0.9)';
+  if (change >= 1) return 'rgba(27, 94, 32, 0.7)';
+  if (change >= 0) return 'rgba(38, 50, 56, 0.8)';
+  if (change >= -1) return 'rgba(55, 71, 79, 0.8)';
+  if (change >= -3) return 'rgba(183, 28, 28, 0.7)';
+  if (change >= -5) return 'rgba(211, 47, 47, 0.85)';
+  return 'rgba(255, 23, 68, 0.9)';
+}
+
+function getTextColor(change) {
+  const abs = Math.abs(change);
+  if (abs >= 5) return '#ffffff';
+  if (abs >= 3) return '#e0e0e0';
+  if (abs >= 1) return '#bdbdbd';
+  return '#9e9e9e';
+}
+
+function getChangeTextColor(change) {
+  if (change >= 3) return '#69f0ae';
+  if (change >= 0) return '#a5d6a7';
+  if (change >= -3) return '#ef9a9a';
+  return '#ff8a80';
+}
+
+// ============================================================
+// TREEMAP LAYOUT (Squarified algorithm)
+// ============================================================
+function squarify(items, x, y, w, h) {
+  if (items.length === 0) return [];
+  if (items.length === 1) {
+    items[0].x = x; items[0].y = y;
+    items[0].w = w; items[0].h = h;
+    return items;
+  }
+
+  const total = items.reduce((s, i) => s + i.value, 0);
+  if (total === 0) return items;
+
+  const rects = [];
+  layoutRow(items, 0, x, y, w, h, total, rects);
+  return rects;
+}
+
+function layoutRow(items, startIdx, x, y, w, h, totalArea, rects) {
+  if (startIdx >= items.length) return;
+
+  const isVertical = w >= h;
+  const mainSize = isVertical ? h : w;
+  const remaining = items.slice(startIdx);
+  const remTotal = remaining.reduce((s, i) => s + i.value, 0);
+
+  let row = [remaining[0]];
+  let rowSum = remaining[0].value;
+  let bestRatio = worstRatio(row, rowSum, mainSize, remTotal, w, h);
+
+  for (let i = 1; i < remaining.length; i++) {
+    const testRow = [...row, remaining[i]];
+    const testSum = rowSum + remaining[i].value;
+    const testRatio = worstRatio(testRow, testSum, mainSize, remTotal, w, h);
+
+    if (testRatio <= bestRatio) {
+      row = testRow;
+      rowSum = testSum;
+      bestRatio = testRatio;
+    } else {
+      break;
+    }
+  }
+
+  // Layout this row
+  const rowFraction = rowSum / remTotal;
+  let rowSize, rx = x, ry = y, rw, rh;
+
+  if (isVertical) {
+    rowSize = w * rowFraction;
+    rw = rowSize;
+    rh = h;
+    let cy = ry;
+    for (const item of row) {
+      const itemH = (item.value / rowSum) * rh;
+      item.x = rx;
+      item.y = cy;
+      item.w = rw;
+      item.h = itemH;
+      rects.push(item);
+      cy += itemH;
+    }
+    layoutRow(items, startIdx + row.length, x + rowSize, y, w - rowSize, h, totalArea, rects);
+  } else {
+    rowSize = h * rowFraction;
+    rw = w;
+    rh = rowSize;
+    let cx = rx;
+    for (const item of row) {
+      const itemW = (item.value / rowSum) * rw;
+      item.x = cx;
+      item.y = ry;
+      item.w = itemW;
+      item.h = rh;
+      rects.push(item);
+      cx += itemW;
+    }
+    layoutRow(items, startIdx + row.length, x, y + rowSize, w, h - rowSize, totalArea, rects);
+  }
+}
+
+function worstRatio(row, rowSum, sideLen, totalArea, W, H) {
+  const isVertical = W >= H;
+  const fraction = rowSum / totalArea;
+  const rowSize = (isVertical ? W : H) * fraction;
+  if (rowSize === 0) return Infinity;
+
+  let worst = 0;
+  for (const item of row) {
+    const itemLen = (item.value / rowSum) * (isVertical ? H : W);
+    const r = Math.max(rowSize / itemLen, itemLen / rowSize);
+    if (r > worst) worst = r;
+  }
+  return worst;
+}
+
+// ============================================================
+// GET COIN CATEGORY
+// ============================================================
+function getCoinCategory(coinId) {
+  for (const [cat, ids] of Object.entries(CATEGORIES)) {
+    if (ids.includes(coinId)) return cat;
+  }
+  return 'Other';
+}
+
+// ============================================================
+// FORMAT HELPERS
+// ============================================================
+function formatMcap(n) {
+  if (n >= 1e12) return `$${(n/1e12).toFixed(2)}T`;
+  if (n >= 1e9) return `$${(n/1e9).toFixed(1)}B`;
+  if (n >= 1e6) return `$${(n/1e6).toFixed(1)}M`;
+  return `$${n.toLocaleString()}`;
+}
+
+function formatPrice(n) {
+  if (n >= 1000) return `$${n.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+  if (n >= 1) return `$${n.toFixed(2)}`;
+  if (n >= 0.01) return `$${n.toFixed(4)}`;
+  return `$${n.toFixed(6)}`;
+}
+
+function formatVol(n) {
+  if (n >= 1e9) return `$${(n/1e9).toFixed(1)}B`;
+  if (n >= 1e6) return `$${(n/1e6).toFixed(0)}M`;
+  return `$${(n/1e3).toFixed(0)}K`;
+}
+
+// ============================================================
+// GET CHANGE VALUE BY PERIOD
+// ============================================================
+function getChange(coin) {
+  if (currentPeriod === '7d') return coin.price_change_percentage_7d || 0;
+  if (currentPeriod === '30d') return coin.price_change_percentage_30d || 0;
+  return coin.price_change_percentage_24h || 0;
+}
+
+// ============================================================
+// RENDER TREEMAP
+// ============================================================
+function renderTreemap(data) {
+  const container = document.getElementById('treemap');
+  const containerWidth = container.clientWidth;
+  const containerHeight = Math.max(600, window.innerHeight - 260);
+  container.style.height = containerHeight + 'px';
+
+  // Filter data
+  let filtered = data.filter(c => !STABLECOINS.includes(c.id));
+  if (currentCategory !== 'all') {
+    const catIds = CATEGORIES[currentCategory] || [];
+    filtered = filtered.filter(c => catIds.includes(c.id));
+  }
+
+  // Sort by market cap desc
+  filtered.sort((a, b) => b.market_cap - a.market_cap);
+  filtered = filtered.slice(0, 100);
+
+  // Update stats
+  updateStats(filtered);
+
+  // Prepare treemap items
+  const items = filtered.map(c => ({
+    ...c,
+    value: Math.sqrt(c.market_cap), // sqrt for less extreme size differences
+    change: getChange(c),
+    category: getCoinCategory(c.id)
+  }));
+
+  // Compute layout
+  const GAP = 2;
+  const laid = squarify([...items], 0, 0, containerWidth, containerHeight);
+
+  // Clear & render
+  container.innerHTML = '';
+
+  laid.forEach((item, idx) => {
+    const cell = document.createElement('div');
+    cell.className = 'tree-cell';
+
+    const w = Math.max(0, item.w - GAP);
+    const h = Math.max(0, item.h - GAP);
+
+    // Size class
+    const area = w * h;
+    let sizeClass = 'size-xs';
+    if (area > 40000) sizeClass = 'size-xl';
+    else if (area > 15000) sizeClass = 'size-lg';
+    else if (area > 5000) sizeClass = 'size-md';
+    else if (area > 1500) sizeClass = 'size-sm';
+
+    cell.classList.add(sizeClass);
+
+    const change = item.change;
+    const bgColor = getChangeColor(change);
+    const textColor = getTextColor(change);
+    const changeColor = getChangeTextColor(change);
+    const sign = change >= 0 ? '+' : '';
+
+    cell.style.cssText = `
+      left: ${item.x + GAP/2}px;
+      top: ${item.y + GAP/2}px;
+      width: ${w}px;
+      height: ${h}px;
+      background: ${bgColor};
+      color: ${textColor};
+      animation-delay: ${idx * 8}ms;
+    `;
+
+    const showIcon = area > 1500;
+    const iconUrl = item.image || '';
+
+    cell.innerHTML = `
+      <div class="cell-inner">
+        ${showIcon && iconUrl ? `<div class="cell-icon" style="background-image:url('${iconUrl}')"></div>` : ''}
+        <div class="cell-symbol">${item.symbol.toUpperCase()}</div>
+        <div class="cell-name">${item.name}</div>
+        <div class="cell-change" style="color:${changeColor}">${sign}${change.toFixed(1)}%</div>
+      </div>
+    `;
+
+    // Tooltip events
+    cell.addEventListener('mouseenter', (e) => showTooltip(e, item));
+    cell.addEventListener('mousemove', (e) => moveTooltip(e));
+    cell.addEventListener('mouseleave', hideTooltip);
+
+    container.appendChild(cell);
+  });
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats(data) {
+  const gains = data.filter(c => getChange(c) > 0).length;
+  const losses = data.filter(c => getChange(c) < 0).length;
+  const avg = data.reduce((s, c) => s + getChange(c), 0) / (data.length || 1);
+
+  document.getElementById('totalCoins').textContent = data.length;
+  document.getElementById('gainCount').textContent = gains;
+  document.getElementById('lossCount').textContent = losses;
+
+  const avgEl = document.getElementById('avgChange');
+  avgEl.textContent = `${avg >= 0 ? '+' : ''}${avg.toFixed(2)}%`;
+  avgEl.className = avg >= 0 ? 'stat-green' : 'stat-red';
+
+  // BTC dominance
+  const btc = data.find(c => c.id === 'bitcoin');
+  const total = data.reduce((s, c) => s + c.market_cap, 0);
+  if (btc && total) {
+    document.getElementById('btcDom').textContent = ((btc.market_cap / total) * 100).toFixed(1) + '%';
+  }
+}
+
+// ============================================================
+// TOOLTIP
+// ============================================================
+function showTooltip(e, coin) {
+  const tt = document.getElementById('tooltip');
+  const change = coin.change;
+  const sign = change >= 0 ? '+' : '';
+  const chColor = change >= 0 ? '#69f0ae' : '#ff8a80';
+
+  const ch24 = coin.price_change_percentage_24h || 0;
+  const ch7d = coin.price_change_percentage_7d || 0;
+  const ch30d = coin.price_change_percentage_30d || 0;
+
+  tt.innerHTML = `
+    <div class="tooltip-header">
+      ${coin.image ? `<div class="tooltip-icon" style="background-image:url('${coin.image}')"></div>` : ''}
+      <div>
+        <div class="tooltip-name">${coin.name}</div>
+        <div class="tooltip-symbol">${coin.symbol.toUpperCase()} · ${coin.category}</div>
+      </div>
+    </div>
+    <div class="tooltip-row">
+      <span class="tooltip-label">가격</span>
+      <span class="tooltip-value">${formatPrice(coin.current_price)}</span>
+    </div>
+    <div class="tooltip-row">
+      <span class="tooltip-label">시가총액</span>
+      <span class="tooltip-value">${formatMcap(coin.market_cap)}</span>
+    </div>
+    <div class="tooltip-row">
+      <span class="tooltip-label">24H 거래량</span>
+      <span class="tooltip-value">${formatVol(coin.total_volume || 0)}</span>
+    </div>
+    <div class="tooltip-row">
+      <span class="tooltip-label">24H</span>
+      <span class="tooltip-value" style="color:${ch24>=0?'#69f0ae':'#ff8a80'}">${ch24>=0?'+':''}${ch24.toFixed(2)}%</span>
+    </div>
+    <div class="tooltip-row">
+      <span class="tooltip-label">7D</span>
+      <span class="tooltip-value" style="color:${ch7d>=0?'#69f0ae':'#ff8a80'}">${ch7d>=0?'+':''}${ch7d.toFixed(2)}%</span>
+    </div>
+    <div class="tooltip-row">
+      <span class="tooltip-label">30D</span>
+      <span class="tooltip-value" style="color:${ch30d>=0?'#69f0ae':'#ff8a80'}">${ch30d>=0?'+':''}${ch30d.toFixed(2)}%</span>
+    </div>
+  `;
+  tt.classList.add('show');
+  moveTooltip(e);
+}
+
+function moveTooltip(e) {
+  const tt = document.getElementById('tooltip');
+  const pad = 16;
+  let x = e.clientX + pad;
+  let y = e.clientY + pad;
+
+  const rect = tt.getBoundingClientRect();
+  if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - pad;
+  if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - pad;
+
+  tt.style.left = x + 'px';
+  tt.style.top = y + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').classList.remove('show');
+}
+
+// ============================================================
+// CATEGORY FILTER SETUP
+// ============================================================
+function setupCategoryFilter() {
+  const container = document.getElementById('categoryFilter');
+  const cats = Object.keys(CATEGORIES);
+
+  cats.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn';
+    btn.dataset.cat = cat;
+    btn.textContent = cat;
+    container.appendChild(btn);
+  });
+
+  container.addEventListener('click', (e) => {
+    if (!e.target.classList.contains('cat-btn')) return;
+    container.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentCategory = e.target.dataset.cat;
+    renderTreemap(allData);
+  });
+}
+
+// ============================================================
+// PERIOD TOGGLE
+// ============================================================
+document.querySelector('.period-toggle').addEventListener('click', (e) => {
+  if (!e.target.classList.contains('period-btn')) return;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  currentPeriod = e.target.dataset.period;
+  renderTreemap(allData);
+});
+
+// ============================================================
+// SOCIAL SHARE
+// ============================================================
+function shareTwitter() {
+  const text = `크립토 시장 히트맵 🔥 시총 Top 100 실시간 성적표`;
+  const url = 'https://herdvibe.com/crypto-heatmap';
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+}
+function shareKakao() {
+  const url = 'https://herdvibe.com/crypto-heatmap';
+  window.open(`https://story.kakao.com/share?url=${encodeURIComponent(url)}`, '_blank');
+}
+function shareTelegram() {
+  const text = `크립토 시장 히트맵 - 시총 Top 100 실시간 성적표`;
+  const url = 'https://herdvibe.com/crypto-heatmap';
+  window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
+}
+
+// ============================================================
+// RESIZE HANDLER
+// ============================================================
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (allData.length) renderTreemap(allData);
+  }, 200);
+});
+
+// ============================================================
+// MOCK DATA (Replace with actual JSON fetch in production)
+// ============================================================
+function generateMockData() {
+  const coins = [
+    { id: 'bitcoin', symbol: 'btc', name: 'Bitcoin', market_cap: 1950000000000, current_price: 98500, total_volume: 42000000000, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
+    { id: 'ethereum', symbol: 'eth', name: 'Ethereum', market_cap: 390000000000, current_price: 3250, total_volume: 18000000000, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
+    { id: 'binance-coin', symbol: 'bnb', name: 'BNB', market_cap: 98000000000, current_price: 650, total_volume: 2200000000, image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
+    { id: 'solana', symbol: 'sol', name: 'Solana', market_cap: 95000000000, current_price: 198, total_volume: 4500000000, image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
+    { id: 'ripple', symbol: 'xrp', name: 'XRP', market_cap: 88000000000, current_price: 1.55, total_volume: 3200000000, image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
+    { id: 'dogecoin', symbol: 'doge', name: 'Dogecoin', market_cap: 48000000000, current_price: 0.33, total_volume: 2800000000, image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
+    { id: 'cardano', symbol: 'ada', name: 'Cardano', market_cap: 38000000000, current_price: 1.08, total_volume: 1500000000, image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png' },
+    { id: 'avalanche-2', symbol: 'avax', name: 'Avalanche', market_cap: 18000000000, current_price: 44, total_volume: 900000000, image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png' },
+    { id: 'tron', symbol: 'trx', name: 'TRON', market_cap: 16000000000, current_price: 0.18, total_volume: 600000000, image: 'https://assets.coingecko.com/coins/images/1094/small/tron-logo.png' },
+    { id: 'chainlink', symbol: 'link', name: 'Chainlink', market_cap: 15000000000, current_price: 24, total_volume: 1200000000, image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png' },
+    { id: 'polkadot', symbol: 'dot', name: 'Polkadot', market_cap: 12000000000, current_price: 8.8, total_volume: 500000000, image: 'https://assets.coingecko.com/coins/images/12171/small/polkadot.png' },
+    { id: 'the-open-network', symbol: 'ton', name: 'Toncoin', market_cap: 14000000000, current_price: 5.6, total_volume: 400000000, image: 'https://assets.coingecko.com/coins/images/17980/small/ton_symbol.png' },
+    { id: 'shiba-inu', symbol: 'shib', name: 'Shiba Inu', market_cap: 13000000000, current_price: 0.000022, total_volume: 800000000, image: 'https://assets.coingecko.com/coins/images/11939/small/shiba.png' },
+    { id: 'matic-network', symbol: 'matic', name: 'Polygon', market_cap: 11000000000, current_price: 1.1, total_volume: 700000000, image: 'https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png' },
+    { id: 'uniswap', symbol: 'uni', name: 'Uniswap', market_cap: 9000000000, current_price: 15, total_volume: 500000000, image: 'https://assets.coingecko.com/coins/images/12504/small/uni.jpg' },
+    { id: 'sui', symbol: 'sui', name: 'Sui', market_cap: 10000000000, current_price: 3.8, total_volume: 1100000000, image: 'https://assets.coingecko.com/coins/images/26375/small/sui_asset.jpeg' },
+    { id: 'near', symbol: 'near', name: 'NEAR Protocol', market_cap: 8500000000, current_price: 7.2, total_volume: 600000000, image: 'https://assets.coingecko.com/coins/images/10365/small/near.jpg' },
+    { id: 'litecoin', symbol: 'ltc', name: 'Litecoin', market_cap: 8000000000, current_price: 108, total_volume: 400000000, image: 'https://assets.coingecko.com/coins/images/2/small/litecoin.png' },
+    { id: 'pepe', symbol: 'pepe', name: 'Pepe', market_cap: 7500000000, current_price: 0.0000178, total_volume: 2000000000, image: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg' },
+    { id: 'bitcoin-cash', symbol: 'bch', name: 'Bitcoin Cash', market_cap: 7200000000, current_price: 365, total_volume: 350000000, image: 'https://assets.coingecko.com/coins/images/780/small/bitcoin-cash-circle.png' },
+    { id: 'aptos', symbol: 'apt', name: 'Aptos', market_cap: 6800000000, current_price: 14.5, total_volume: 450000000, image: 'https://assets.coingecko.com/coins/images/26455/small/aptos_round.png' },
+    { id: 'lido-dao', symbol: 'ldo', name: 'Lido DAO', market_cap: 3200000000, current_price: 3.6, total_volume: 250000000, image: 'https://assets.coingecko.com/coins/images/13573/small/Lido_DAO.png' },
+    { id: 'render-token', symbol: 'rndr', name: 'Render', market_cap: 5500000000, current_price: 10.5, total_volume: 600000000, image: 'https://assets.coingecko.com/coins/images/11636/small/rndr.png' },
+    { id: 'arbitrum', symbol: 'arb', name: 'Arbitrum', market_cap: 4500000000, current_price: 1.65, total_volume: 500000000, image: 'https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg' },
+    { id: 'cosmos', symbol: 'atom', name: 'Cosmos', market_cap: 4200000000, current_price: 10.8, total_volume: 300000000, image: 'https://assets.coingecko.com/coins/images/1481/small/cosmos_hub.png' },
+    { id: 'filecoin', symbol: 'fil', name: 'Filecoin', market_cap: 4000000000, current_price: 7.2, total_volume: 280000000, image: 'https://assets.coingecko.com/coins/images/12817/small/filecoin.png' },
+    { id: 'hedera-hashgraph', symbol: 'hbar', name: 'Hedera', market_cap: 3800000000, current_price: 0.105, total_volume: 220000000, image: 'https://assets.coingecko.com/coins/images/3688/small/hbar.png' },
+    { id: 'maker', symbol: 'mkr', name: 'Maker', market_cap: 3500000000, current_price: 3800, total_volume: 180000000, image: 'https://assets.coingecko.com/coins/images/1364/small/Mark_Maker.png' },
+    { id: 'internet-computer', symbol: 'icp', name: 'Internet Computer', market_cap: 6200000000, current_price: 13.2, total_volume: 200000000, image: 'https://assets.coingecko.com/coins/images/14495/small/Internet_Computer_logo.png' },
+    { id: 'injective-protocol', symbol: 'inj', name: 'Injective', market_cap: 3000000000, current_price: 35, total_volume: 200000000, image: 'https://assets.coingecko.com/coins/images/12882/small/Secondary_Symbol.png' },
+    { id: 'optimism', symbol: 'op', name: 'Optimism', market_cap: 3100000000, current_price: 2.8, total_volume: 350000000, image: 'https://assets.coingecko.com/coins/images/25244/small/Optimism.png' },
+    { id: 'celestia', symbol: 'tia', name: 'Celestia', market_cap: 2800000000, current_price: 15.5, total_volume: 300000000, image: 'https://assets.coingecko.com/coins/images/31967/small/tia.jpg' },
+    { id: 'aave', symbol: 'aave', name: 'Aave', market_cap: 5200000000, current_price: 350, total_volume: 400000000, image: 'https://assets.coingecko.com/coins/images/12645/small/AAVE.png' },
+    { id: 'the-graph', symbol: 'grt', name: 'The Graph', market_cap: 2600000000, current_price: 0.27, total_volume: 180000000, image: 'https://assets.coingecko.com/coins/images/13397/small/Graph_Token.png' },
+    { id: 'bittensor', symbol: 'tao', name: 'Bittensor', market_cap: 4800000000, current_price: 680, total_volume: 150000000, image: 'https://assets.coingecko.com/coins/images/28452/small/ARUsPeNQ_400x400.jpeg' },
+    { id: 'fetch-ai', symbol: 'fet', name: 'Fetch.ai', market_cap: 3600000000, current_price: 1.5, total_volume: 250000000, image: 'https://assets.coingecko.com/coins/images/5681/small/Fetch.jpg' },
+    { id: 'kaspa', symbol: 'kas', name: 'Kaspa', market_cap: 4000000000, current_price: 0.165, total_volume: 120000000, image: 'https://assets.coingecko.com/coins/images/25751/small/kaspa-icon-exchanges.png' },
+    { id: 'dogwifcoin', symbol: 'wif', name: 'dogwifhat', market_cap: 3200000000, current_price: 3.2, total_volume: 900000000, image: 'https://assets.coingecko.com/coins/images/33566/small/dogwifhat.jpg' },
+    { id: 'bonk', symbol: 'bonk', name: 'Bonk', market_cap: 2200000000, current_price: 0.000032, total_volume: 500000000, image: 'https://assets.coingecko.com/coins/images/28600/small/bonk.jpg' },
+    { id: 'floki', symbol: 'floki', name: 'FLOKI', market_cap: 2000000000, current_price: 0.00021, total_volume: 300000000, image: 'https://assets.coingecko.com/coins/images/16746/small/PNG_image.png' },
+    { id: 'theta-token', symbol: 'theta', name: 'Theta', market_cap: 2500000000, current_price: 2.5, total_volume: 100000000, image: 'https://assets.coingecko.com/coins/images/2538/small/theta-token-logo.png' },
+    { id: 'sei-network', symbol: 'sei', name: 'Sei', market_cap: 2200000000, current_price: 0.82, total_volume: 250000000, image: 'https://assets.coingecko.com/coins/images/28205/small/Sei_Logo_-_Transparent.png' },
+    { id: 'algorand', symbol: 'algo', name: 'Algorand', market_cap: 2800000000, current_price: 0.34, total_volume: 200000000, image: 'https://assets.coingecko.com/coins/images/4380/small/download.png' },
+    { id: 'vechain', symbol: 'vet', name: 'VeChain', market_cap: 3000000000, current_price: 0.041, total_volume: 150000000, image: 'https://assets.coingecko.com/coins/images/1167/small/VeChain-Logo-768x725.png' },
+    { id: 'ondo-finance', symbol: 'ondo', name: 'Ondo', market_cap: 2800000000, current_price: 2.0, total_volume: 280000000, image: 'https://assets.coingecko.com/coins/images/26580/small/ONDO.png' },
+    { id: 'fantom', symbol: 'ftm', name: 'Fantom', market_cap: 2400000000, current_price: 0.85, total_volume: 200000000, image: 'https://assets.coingecko.com/coins/images/4001/small/Fantom_round.png' },
+    { id: 'immutable-x', symbol: 'imx', name: 'Immutable', market_cap: 3200000000, current_price: 2.1, total_volume: 120000000, image: 'https://assets.coingecko.com/coins/images/17233/small/immutableX-symbol-BLK-RGB.png' },
+    { id: 'starknet', symbol: 'strk', name: 'Starknet', market_cap: 2000000000, current_price: 2.6, total_volume: 180000000, image: 'https://assets.coingecko.com/coins/images/26433/small/starknet.png' },
+    { id: 'gala', symbol: 'gala', name: 'Gala', market_cap: 1800000000, current_price: 0.048, total_volume: 200000000, image: 'https://assets.coingecko.com/coins/images/12493/small/GALA-COINGECKO.png' },
+    { id: 'mantle', symbol: 'mnt', name: 'Mantle', market_cap: 2600000000, current_price: 0.78, total_volume: 150000000, image: 'https://assets.coingecko.com/coins/images/30980/small/token-logo.png' },
+    { id: 'axie-infinity', symbol: 'axs', name: 'Axie Infinity', market_cap: 1500000000, current_price: 10.5, total_volume: 120000000, image: 'https://assets.coingecko.com/coins/images/13029/small/axie_infinity_logo.png' },
+    { id: 'pendle', symbol: 'pendle', name: 'Pendle', market_cap: 1400000000, current_price: 5.3, total_volume: 200000000, image: 'https://assets.coingecko.com/coins/images/15069/small/Pendle_Logo_Normal-03.png' },
+    { id: 'pyth-network', symbol: 'pyth', name: 'Pyth Network', market_cap: 1600000000, current_price: 0.44, total_volume: 120000000, image: 'https://assets.coingecko.com/coins/images/31924/small/pyth.png' },
+    { id: 'worldcoin', symbol: 'wld', name: 'Worldcoin', market_cap: 1800000000, current_price: 4.2, total_volume: 300000000, image: 'https://assets.coingecko.com/coins/images/31069/small/worldcoin.jpeg' },
+    { id: 'thorchain', symbol: 'rune', name: 'THORChain', market_cap: 2000000000, current_price: 5.9, total_volume: 200000000, image: 'https://assets.coingecko.com/coins/images/6595/small/Rune200x200.png' },
+    { id: 'jupiter-exchange-solana', symbol: 'jup', name: 'Jupiter', market_cap: 1500000000, current_price: 1.1, total_volume: 180000000, image: 'https://assets.coingecko.com/coins/images/34188/small/jup.png' },
+    { id: 'pancakeswap-token', symbol: 'cake', name: 'PancakeSwap', market_cap: 1200000000, current_price: 4.8, total_volume: 100000000, image: 'https://assets.coingecko.com/coins/images/12632/small/pancakeswap-cake-logo_%281%29.png' },
+    { id: 'arweave', symbol: 'ar', name: 'Arweave', market_cap: 1300000000, current_price: 19.5, total_volume: 100000000, image: 'https://assets.coingecko.com/coins/images/4343/small/oRt6SiEN_400x400.jpg' },
+    { id: 'eos', symbol: 'eos', name: 'EOS', market_cap: 1400000000, current_price: 1.25, total_volume: 200000000, image: 'https://assets.coingecko.com/coins/images/738/small/eos-eos-logo.png' },
+    { id: 'flow', symbol: 'flow', name: 'Flow', market_cap: 1100000000, current_price: 1.05, total_volume: 80000000, image: 'https://assets.coingecko.com/coins/images/13446/small/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.png' },
+    { id: 'tezos', symbol: 'xtz', name: 'Tezos', market_cap: 1000000000, current_price: 1.35, total_volume: 60000000, image: 'https://assets.coingecko.com/coins/images/976/small/Tezos-logo.png' },
+    { id: 'mina-protocol', symbol: 'mina', name: 'Mina', market_cap: 900000000, current_price: 1.15, total_volume: 50000000, image: 'https://assets.coingecko.com/coins/images/15628/small/JM4_vQ34_400x400.png' },
+    { id: 'wormhole', symbol: 'w', name: 'Wormhole', market_cap: 1000000000, current_price: 0.55, total_volume: 100000000, image: 'https://assets.coingecko.com/coins/images/35087/small/womrhole_logo_full_color_rgb_2000px_72ppi_fb766ac85a.png' },
+    { id: 'raydium', symbol: 'ray', name: 'Raydium', market_cap: 1100000000, current_price: 4.2, total_volume: 150000000, image: 'https://assets.coingecko.com/coins/images/13928/small/PSigc4ie_400x400.jpg' },
+    { id: 'ethena', symbol: 'ena', name: 'Ethena', market_cap: 1200000000, current_price: 0.75, total_volume: 200000000, image: 'https://assets.coingecko.com/coins/images/36530/small/ethena.png' },
+    { id: 'helium', symbol: 'hnt', name: 'Helium', market_cap: 900000000, current_price: 6.5, total_volume: 40000000, image: 'https://assets.coingecko.com/coins/images/4284/small/Helium_HNT.png' },
+    { id: 'okb', symbol: 'okb', name: 'OKB', market_cap: 3500000000, current_price: 58, total_volume: 20000000, image: 'https://assets.coingecko.com/coins/images/4463/small/WeChat_Image_20220118095654.png' },
+    { id: 'curve-dao-token', symbol: 'crv', name: 'Curve DAO', market_cap: 800000000, current_price: 0.62, total_volume: 120000000, image: 'https://assets.coingecko.com/coins/images/12124/small/Curve.png' },
+    { id: 'popcat', symbol: 'popcat', name: 'Popcat', market_cap: 800000000, current_price: 0.82, total_volume: 150000000, image: 'https://assets.coingecko.com/coins/images/33760/small/image.jpg' },
+    { id: 'rocket-pool', symbol: 'rpl', name: 'Rocket Pool', market_cap: 700000000, current_price: 36, total_volume: 30000000, image: 'https://assets.coingecko.com/coins/images/2090/small/rocket_pool_%28RPL%29.png' },
+  ];
+
+  // Add random changes
+  return coins.map(c => ({
+    ...c,
+    price_change_percentage_24h: (Math.random() - 0.45) * 14,
+    price_change_percentage_7d: (Math.random() - 0.45) * 25,
+    price_change_percentage_30d: (Math.random() - 0.45) * 40,
+  }));
+}
+
+// ============================================================
+// DATA LOADING
+// ============================================================
+async function loadData() {
+  try {
+    // Try loading from GitHub-hosted JSON first
+    const response = await fetch(DATA_URL);
+    if (response.ok) {
+      allData = await response.json();
+      // Filter stablecoins
+      allData = allData.filter(c => !STABLECOINS.includes(c.id));
+    } else {
+      throw new Error('JSON not found');
+    }
+  } catch (e) {
+    // Fall back to mock data for demo/development
+    console.log('Using mock data (JSON not found):', e.message);
+    allData = generateMockData();
+  }
+
+  document.getElementById('loading').remove();
+
+  const now = new Date();
+  document.getElementById('dataTimestamp').textContent = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 기준`;
+  document.getElementById('updateTime').textContent = `Updated: ${now.toLocaleTimeString('ko-KR')}`;
+
+  renderTreemap(allData);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+setupCategoryFilter();
+loadData();
+</script>
+</body>
+</html>
