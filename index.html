@@ -11,7 +11,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.1/kakao.min.js" crossorigin="anonymous" async></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   ::-webkit-scrollbar { display: none; }
@@ -375,7 +374,7 @@
       <button class="share-btn twitter" onclick="doShare('twitter')" title="Twitter / X">
         <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
       </button>
-      <button class="share-btn kakao" onclick="doShare('kakao')" title="카카오톡">
+      <button class="share-btn kakao" onclick="doShare('kakao',this)" title="카카오톡">
         <svg viewBox="0 0 24 24"><path d="M12 3c-5.08 0-9.2 3.34-9.2 7.46 0 2.64 1.73 4.96 4.35 6.32l-1.1 4.07c-.1.36.32.65.63.44l4.84-3.18c.16.01.32.02.48.02 5.08 0 9.2-3.34 9.2-7.46S17.08 3 12 3z"/></svg>
       </button>
       <button class="share-btn telegram" onclick="doShare('telegram')" title="텔레그램">
@@ -448,12 +447,9 @@ let currentCategory = 'all';
 
 // ===== SHARE (copied from working inflation dashboard) =====
 var SHARE_URL = 'https://herdvibe.com/258795354';
-function ensureKakao(){try{if(typeof Kakao!=='undefined'&&!Kakao.isInitialized())Kakao.init('a43ed7b39fac35458f4f9df925a279b5');return typeof Kakao!=='undefined'&&Kakao.isInitialized();}catch(e){return false;}}
-ensureKakao();
-function kakaoShare(){if(!ensureKakao()){copyToClipboard(SHARE_URL);showToast('링크 복사완료! 카카오톡에 붙여넣기 하세요');return;}try{Kakao.Share.sendDefault({objectType:'feed',content:{title:'암호화폐 히트맵',description:'시가총액 기준 Top 100 크립토 자산 실시간 성적표',imageUrl:'https://raw.githubusercontent.com/kittycapital/kittycapital.github.io/main/assets/herdvibe-og.png',link:{mobileWebUrl:SHARE_URL,webUrl:SHARE_URL}},buttons:[{title:'히트맵 보기',link:{mobileWebUrl:SHARE_URL,webUrl:SHARE_URL}}]});}catch(e){copyToClipboard(SHARE_URL);showToast('링크 복사완료! 카카오톡에 붙여넣기 하세요');}}
 function copyToClipboard(text){try{window.parent.postMessage({type:'clipboard',text:text},'*');}catch(e){}}
 function flashCopied(btn){if(!btn)return;var orig=btn.innerHTML;btn.style.background='#22c55e';btn.style.color='#fff';btn.style.borderColor='#22c55e';btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>';setTimeout(function(){btn.style.background='';btn.style.color='';btn.style.borderColor='';btn.innerHTML=orig;},2000);}
-function doShare(p,btn){var u=SHARE_URL;var t=encodeURIComponent('암호화폐 히트맵 🔥 시총 Top 100 실시간 성적표 | herdvibe.com');var eu=encodeURIComponent(u);switch(p){case'twitter':window.open('https://twitter.com/intent/tweet?text='+t+'&url='+eu,'_blank');break;case'telegram':window.open('https://t.me/share/url?url='+eu+'&text='+t,'_blank');break;case'kakao':kakaoShare();break;case'instagram':copyToClipboard(u);flashCopied(btn);showToast('링크 복사완료! 인스타그램에 붙여넣기 하세요');break;case'link':copyToClipboard(u);flashCopied(btn);showToast('링크가 복사되었습니다 ✓');break;}}
+function doShare(p,btn){var u=SHARE_URL;var t=encodeURIComponent('암호화폐 히트맵 🔥 시총 Top 100 실시간 성적표 | herdvibe.com');var eu=encodeURIComponent(u);switch(p){case'twitter':window.open('https://twitter.com/intent/tweet?text='+t+'&url='+eu,'_blank');break;case'telegram':window.open('https://t.me/share/url?url='+eu+'&text='+t,'_blank');break;case'kakao':copyToClipboard(u);flashCopied(btn);showToast('링크 복사완료! 카카오톡에 붙여넣기 하세요');break;case'instagram':copyToClipboard(u);flashCopied(btn);showToast('링크 복사완료! 인스타그램에 붙여넣기 하세요');break;case'link':copyToClipboard(u);flashCopied(btn);showToast('링크가 복사되었습니다 ✓');break;}}
 
 // ===== COLORS =====
 function getChangeColor(c) {
