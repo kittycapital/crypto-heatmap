@@ -620,26 +620,48 @@ document.querySelector('.period-toggle').addEventListener('click', e => {
 });
 
 // ===== SHARE =====
+function openUrl(url) {
+  // iframe 안에서도 확실하게 새 탭 열기
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch(e) {
+    window.open(url, '_blank');
+  }
+}
+
 function shareTwitter() {
-  const t='크립토 시장 히트맵 🔥 시총 Top 100 실시간 성적표 by @herdvibe';
-  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(t)}&url=${encodeURIComponent(SHARE_URL)}`,'_blank');
+  const t = '크립토 시장 히트맵 🔥 시총 Top 100 실시간 성적표 by @herdvibe';
+  openUrl(`https://twitter.com/intent/tweet?text=${encodeURIComponent(t)}&url=${encodeURIComponent(SHARE_URL)}`);
 }
 function shareKakao() {
-  if(typeof Kakao!=='undefined'&&Kakao.isInitialized()) {
+  if (typeof Kakao !== 'undefined' && Kakao.isInitialized()) {
     Kakao.Share.sendDefault({
-      objectType:'feed',
-      content:{title:'암호화폐 히트맵',description:'시가총액 기준 Top 100 크립토 자산 실시간 성적표',imageUrl:'https://herdvibe.com/258795354/og-image.png',link:{mobileWebUrl:SHARE_URL,webUrl:SHARE_URL}},
-      buttons:[{title:'히트맵 보기',link:{mobileWebUrl:SHARE_URL,webUrl:SHARE_URL}}]
+      objectType: 'feed',
+      content: {
+        title: '암호화폐 히트맵',
+        description: '시가총액 기준 Top 100 크립토 자산 실시간 성적표',
+        imageUrl: 'https://herdvibe.com/258795354/og-image.png',
+        link: { mobileWebUrl: SHARE_URL, webUrl: SHARE_URL }
+      },
+      buttons: [{ title: '히트맵 보기', link: { mobileWebUrl: SHARE_URL, webUrl: SHARE_URL } }]
     });
-  } else window.open(`https://story.kakao.com/share?url=${encodeURIComponent(SHARE_URL)}`,'_blank');
+  } else {
+    openUrl(`https://story.kakao.com/share?url=${encodeURIComponent(SHARE_URL)}`);
+  }
 }
 function shareTelegram() {
-  const t='크립토 시장 히트맵 - 시총 Top 100 실시간 성적표';
-  window.open(`https://t.me/share/url?url=${encodeURIComponent(SHARE_URL)}&text=${encodeURIComponent(t)}`,'_blank');
+  const t = '크립토 시장 히트맵 - 시총 Top 100 실시간 성적표';
+  openUrl(`https://t.me/share/url?url=${encodeURIComponent(SHARE_URL)}&text=${encodeURIComponent(t)}`);
 }
 function shareInstagram() {
   doCopy(SHARE_URL);
-  window.open('https://www.instagram.com/', '_blank');
+  openUrl('https://www.instagram.com/');
   showToast('📋 링크 복사됨! 인스타그램 스토리에 붙여넣기 하세요');
 }
 function copyLink() {
@@ -647,24 +669,34 @@ function copyLink() {
   showToast('✅ 링크가 복사되었습니다');
 }
 function doCopy(text) {
-  // 1차: Clipboard API (top-level에서만 동작)
-  if (navigator.clipboard && window.isSecureContext && !window.frameElement) {
-    navigator.clipboard.writeText(text); return;
-  }
-  // 2차: execCommand
+  // 1차: 부모 윈도우 Clipboard API
+  try {
+    if (window.top && window.top.navigator && window.top.navigator.clipboard) {
+      window.top.navigator.clipboard.writeText(text);
+      return;
+    }
+  } catch(e) {}
+  // 2차: 현재 윈도우 Clipboard API
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text);
+      return;
+    }
+  } catch(e) {}
+  // 3차: execCommand
   try {
     const ta = document.createElement('textarea');
     ta.value = text;
     ta.setAttribute('readonly', '');
-    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;pointer-events:none;';
+    ta.style.cssText = 'position:fixed;left:0;top:0;opacity:0;width:1px;height:1px;';
     document.body.appendChild(ta);
     ta.select();
     ta.setSelectionRange(0, ta.value.length);
     document.execCommand('copy');
     document.body.removeChild(ta);
   } catch(e) {
-    // 3차: prompt 폴백
-    window.prompt('링크를 복사하세요:', text);
+    // 4차: prompt 폴백
+    window.prompt('아래 링크를 복사하세요:', text);
   }
 }
 
