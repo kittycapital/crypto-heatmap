@@ -19,7 +19,9 @@ STABLECOINS = {
     'ethena-usde', 'usds', 'paypal-usd', 'frax', 'binance-peg-busd',
     'tether-eurt', 'gemini-dollar', 'paxos-standard', 'celo-dollar',
     'binance-usd', 'terrausd', 'magic-internet-money', 'liquity-usd',
-    'usdd', 'tusd'
+    'usdd', 'tusd',
+    'usd1', 'usual-usd', 'usd0', 'circle-eurc', 'usdtb', 'usdai', 'gho',
+    'usdf'
 }
 
 OUTPUT_DIR = "data"
