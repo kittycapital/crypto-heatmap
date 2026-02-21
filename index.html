@@ -447,7 +447,7 @@ let currentCategory = 'all';
 
 // ===== SHARE (copied from working inflation dashboard) =====
 var SHARE_URL = 'https://herdvibe.com/258795354';
-function copyToClipboard(text){try{window.parent.postMessage({type:'clipboard',text:text},'*');}catch(e){}}
+function copyToClipboard(text){if(window.parent!==window){window.parent.postMessage({type:'copy',text:text},'*')}if(navigator.clipboard&&navigator.clipboard.writeText&&window.isSecureContext){navigator.clipboard.writeText(text).catch(function(){fallbackCopy(text)})}else{fallbackCopy(text)}}function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;left:-9999px;top:-9999px;opacity:0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta)}
 function flashCopied(btn){if(!btn)return;var orig=btn.innerHTML;btn.style.background='#22c55e';btn.style.color='#fff';btn.style.borderColor='#22c55e';btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>';setTimeout(function(){btn.style.background='';btn.style.color='';btn.style.borderColor='';btn.innerHTML=orig;},2000);}
 function doShare(p,btn){var u=SHARE_URL;var t=encodeURIComponent('암호화폐 히트맵 🔥 시총 Top 100 실시간 성적표 | herdvibe.com');var eu=encodeURIComponent(u);switch(p){case'twitter':window.open('https://twitter.com/intent/tweet?text='+t+'&url='+eu,'_blank');break;case'telegram':window.open('https://t.me/share/url?url='+eu+'&text='+t,'_blank');break;case'kakao':copyToClipboard(u);flashCopied(btn);showToast('링크 복사완료! 카카오톡에 붙여넣기 하세요');break;case'instagram':copyToClipboard(u);flashCopied(btn);showToast('링크 복사완료! 인스타그램에 붙여넣기 하세요');break;case'link':copyToClipboard(u);flashCopied(btn);showToast('링크가 복사되었습니다 ✓');break;}}
 
@@ -715,6 +715,12 @@ async function loadData() {
 
 setupCategoryFilter();
 loadData();
+</script>
+<script>
+function sendHeight(){var h=document.documentElement.scrollHeight;window.parent.postMessage({id:'hvCryptoHeatmap',height:h},'*')}
+window.addEventListener('load',function(){sendHeight();setTimeout(sendHeight,500);setTimeout(sendHeight,1500)});
+window.addEventListener('resize',sendHeight);
+new MutationObserver(sendHeight).observe(document.body,{childList:true,subtree:true,attributes:true});
 </script>
 </body>
 </html>
