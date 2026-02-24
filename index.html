@@ -717,7 +717,16 @@ setupCategoryFilter();
 loadData();
 </script>
 <script>
-function sendHeight(){var h=document.documentElement.scrollHeight;window.parent.postMessage({id:'hvCryptoHeatmap',height:h},'*')}
+function sendHeight(){
+  var h=document.documentElement.scrollHeight;
+  var isMobile=window.innerWidth<=768;
+  window.parent.postMessage({
+    id:'hvCryptoHeatmap',
+    height:h,
+    desktopHeight:1200,
+    mobileHeight:800
+  },'*');
+}
 window.addEventListener('load',function(){sendHeight();setTimeout(sendHeight,500);setTimeout(sendHeight,1500)});
 window.addEventListener('resize',sendHeight);
 new MutationObserver(sendHeight).observe(document.body,{childList:true,subtree:true,attributes:true});
