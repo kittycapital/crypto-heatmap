@@ -15,16 +15,66 @@ BASE_URL = "https://api.coingecko.com/api/v3"
 
 # 스테이블코인 제외 리스트
 STABLECOINS = {
-    'tether', 'usd-coin', 'dai', 'trueusd', 'first-digital-usd',
-    'ethena-usde', 'usds', 'paypal-usd', 'frax', 'binance-peg-busd',
-    'tether-eurt', 'gemini-dollar', 'paxos-standard', 'celo-dollar',
-    'binance-usd', 'terrausd', 'magic-internet-money', 'liquity-usd',
-    'usdd', 'tusd', 'true-usd',
-    'usd1', 'usual-usd', 'usd0', 'circle-eurc', 'eurc', 'usdtb', 'usdai', 'gho',
+    # 메이저 달러 페그
+    'tether', 'usd-coin', 'dai', 'trueusd', 'true-usd',
+    'first-digital-usd', 'paypal-usd', 'frax',
+    'gemini-dollar', 'paxos-standard', 'liquity-usd',
+    'terrausd', 'magic-internet-money', 'usdd',
+
+    # USD1 (World Liberty Financial)
+    'usd1', 'wlfi-usd1', 'world-liberty-financial-usd1',
+
+    # BFUSD (Binance)
+    'bfusd', 'binance-usd', 'binance-peg-busd', 'busd', 'binance-futures-usd',
+
+    # RLUSD (Ripple)
+    'rlusd', 'ripple-usd', 'ripple-usd-rlusd',
+
+    # USYC (Hashnote — 수익형 달러 페그)
+    'usyc', 'hashnote-usyc', 'hashnote-short-duration-yield-coin',
+
+    # OUSG (Ondo)
+    'ousg', 'ondo-us-dollar-yield', 'ondo-short-term-us-government-bond',
+
+    # USDG, USDF
+    'usdg', 'usdg-stablecoin',
     'usdf', 'usdf-stablecoin',
+
+    # USTB, USDAI
+    'ustb', 'usdtb', 'usdai',
+
+    # USDX
+    'usdx', 'usdx-stablecoin', 'usdx-money',
+
+    # EURC (Circle Euro)
+    'circle-eurc', 'eurc', 'euro-coin',
+
+    # EURT (Tether Euro)
+    'tether-eurt', 'eurt',
+
+    # STABLE 토큰
+    'stable', 'stable-usd', 'raft-r',
+
+    # FIGR_HELOC (Figure 주택담보 토큰 — 페그 자산)
+    'figure-heloc', 'figr-heloc', 'figure-markets-usd',
+
+    # 기타 달러 페그
+    'ethena-usde', 'usds', 'usual-usd', 'usd0',
+    'gho', 'celo-dollar',
+    'tusd',
+
+    # LEO (Bitfinex 유틸리티 — 거래소 토큰이나 가격 변동성 낮아 필터)
+    # → 제거: LEO는 스테이블코인 아님, 유지
 }
 
-OUTPUT_DIR = "data"
+# 심볼 기반 추가 필터 (ID가 달라도 차단)
+STABLECOIN_SYMBOLS = {
+    'usdt', 'usdc', 'dai', 'tusd', 'usdp', 'usdd', 'frax', 'lusd', 'mim',
+    'gusd', 'busd', 'usdn', 'ust', 'usd1', 'bfusd', 'rlusd', 'usyc',
+    'usdg', 'usdf', 'ustb', 'usdtb', 'usdai', 'eurc', 'eurt', 'ousg',
+    'usdx', 'usd0', 'usds', 'usde', 'usdm', 'usdy', 'ondo',
+    'stable', 'gho', 'celo', 'cusd', 'figr',
+}
 OUTPUT_FILE = os.path.join(OUTPUT_DIR, "crypto_heatmap.json")
 
 
@@ -51,7 +101,18 @@ def process_data(raw_data):
     processed = []
 
     for coin in raw_data:
+        # ID 기반 필터
         if coin['id'] in STABLECOINS:
+            continue
+        if coin['symbol'].lower() in STABLECOIN_SYMBOLS:
+            continue
+        # 심볼 기반 추가 필터 (USD/EUR 페그 패턴)
+        symbol = coin.get('symbol', '').lower()
+        if symbol in {'usdt','usdc','busd','dai','tusd','usdp','usdn','frax',
+                      'lusd','usdd','usde','eurc','eurt','usd1','bfusd','rlusd',
+                      'usyc','usdg','usdf','ustb','usdtb','usdai','gho',
+                      'usd0','usds','gusd','usdp','ust','mim','fei','usdx',
+                      'stable','figr'}:
             continue
 
         processed.append({
