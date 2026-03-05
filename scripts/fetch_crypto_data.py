@@ -75,6 +75,7 @@ STABLECOIN_SYMBOLS = {
     'usdx', 'usd0', 'usds', 'usde', 'usdm', 'usdy', 'ondo',
     'stable', 'gho', 'celo', 'cusd', 'figr',
 }
+OUTPUT_DIR  = "data"
 OUTPUT_FILE = os.path.join(OUTPUT_DIR, "crypto_heatmap.json")
 
 
