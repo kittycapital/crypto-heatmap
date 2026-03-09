@@ -2,8 +2,8 @@ name: Crypto Heatmap Data Update
 
 on:
   schedule:
-    # 매 시간 정각 실행 (UTC)
-    - cron: '0 * * * *'
+    # 6시간마다 실행 (UTC 00, 06, 12, 18시 = KST 09, 15, 21, 03시)
+    - cron: '0 */6 * * *'
   workflow_dispatch: # 수동 실행 가능
 
 permissions:
